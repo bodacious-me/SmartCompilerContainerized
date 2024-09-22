@@ -9,5 +9,3 @@ public class JavaModel {
     private String name;
 
 }
-//  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
-// github token
