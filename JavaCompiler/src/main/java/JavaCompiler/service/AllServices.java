@@ -55,10 +55,8 @@ public class AllServices implements CommandLineRunner {
         }
 
     }
-    //Log file Generator 
     public void logFileGenerator(JavaModel model){
         System.out.println("Log creator method called");
-        // Create the log file in a relating directory in share-data
          String result = ComErrorStream.collect(Collectors.joining(" "));
         String logFileDirectory = "../Shared-Data/output/"+model.getName();
         String logFileName = "logs.txt";
