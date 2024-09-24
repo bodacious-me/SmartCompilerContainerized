@@ -40,15 +40,10 @@ public class AllServices implements CommandLineRunner {
     public static String name;
     public static Stream<String> ComErrorStream;
     public String run(JavaModel model) throws IOException {
-        // Clone the Repository
         gitClonerRequest(model);
-        // Compile the reop
-        // If compilation is successfull
         if (MainCompiler(model)) {
             name = model.getName();
-            // Create the jar file
             jarFileCreator();
-            // And push the file to the github repo
 
             gitPusherRequest(model);
             return "Compilation Successfull The Jar File Is Here: https://github.com/bodacious-me/"+model.getName();
