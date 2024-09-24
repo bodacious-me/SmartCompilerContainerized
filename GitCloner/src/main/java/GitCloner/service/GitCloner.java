@@ -12,7 +12,7 @@ import GitCloner.model.ClonerModel;
 public class GitCloner {
         public void gitCloner(ClonerModel gitrepo) {
         try {
-            String CloneDirectoryPath = "../home/Shared-Data/source/"+gitrepo.getName();
+            String CloneDirectoryPath = "../Shared-Data/source/"+gitrepo.getName();
 
             System.out.println("Cloning repo from: " + gitrepo.getGitrepo() + " to "
                     + CloneDirectoryPath);

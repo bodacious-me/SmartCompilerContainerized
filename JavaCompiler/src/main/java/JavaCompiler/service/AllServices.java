@@ -38,39 +38,61 @@ import JavaCompiler.model.JavaModel;
 public class AllServices implements CommandLineRunner {
 
     public static String name;
-    public static Stream<String> ComError;
-
-    public void run(JavaModel model) throws IOException {
+    public static Stream<String> ComErrorStream;
+    public String run(JavaModel model) throws IOException {
         // Clone the Repository
-        gitCloner(model);
+        gitClonerRequest(model);
         // Compile the reop
         // If compilation is successfull
         if (MainCompiler(model)) {
             name = model.getName();
             // Create the jar file
-            executeCommand();
+            jarFileCreator();
             // And push the file to the github repo
-            gitPusher(model);
+
+            gitPusherRequest(model);
+            return "Compilation Successfull The Jar File Is Here: https://github.com/bodacious-me/"+model.getName();
+        }
+        else{
+            logFileGenerator(model);
+            logFilePusher(model);
+            return "Logs For Your Stupid Code is Here HAHAHA: https://github.com/bodacious-me/"+model.getName();
         }
 
     }
+    //Log file Generator 
+    public void logFileGenerator(JavaModel model){
+        System.out.println("Log creator method called");
+        // Create the log file in a relating directory in share-data
+         String result = ComErrorStream.collect(Collectors.joining(" "));
+        String logFileDirectory = "../Shared-Data/output/"+model.getName();
+        String logFileName = "logs.txt";
 
+        Path path = Paths.get(logFileDirectory, logFileName);
+        try {
+            System.out.println(result);
+            Files.createDirectories(path.getParent());
+            Files.writeString(path, result);
+        } catch (IOException e) {
+            System.out.println("Error Dummie: "+ e);
+        }
+    }
     // Command Runner
 
     @Override
     public void run(String... args) {
-        executeCommand();
+        jarFileCreator();
     }
 
-    public void executeCommand() {
+    public void jarFileCreator() {
 
-        String directoryPath = "../home/Shared-Data/output/" + name; // Directory containing
+        String directoryPath = "../Shared-Data/output/" + name; // Directory containing
                                                                                                  // .class files
         String jarFileName = "Files.jar"; // Name of the JAR file
 
         List<String> classFiles = new ArrayList<>();
         try {
-            Files.list(Paths.get("../home/Shared-Data/output/" + name))
+            Files.list(Paths.get("../Shared-Data/output/" + name))
                     .filter(path -> path.toString().endsWith(".class"))
                     .forEach(path -> classFiles.add(path.getFileName().toString()));
         } catch (IOException e) {
@@ -103,27 +125,39 @@ public class AllServices implements CommandLineRunner {
         }
     }
 
-    public void gitCloner(JavaModel model) {
-        String targetUrl = "http://142.132.225.181:4000/cloner";
-        String requestBody = "{\"gitrepo\":\"" + model.getGitrepo() +
+    public void gitClonerRequest(JavaModel model) {
+        String targetUrl1 = "http://142.132.225.181:4000/cloner";
+        String requestBody1 = "{\"gitrepo\":\"" + model.getGitrepo() +
                 "\",\"name\":\"" + model.getName() + "\"}";
-        sendPostRequestWithJsonBody(targetUrl, requestBody);
+        sendPostRequestWithJsonBody(targetUrl1, requestBody1);
     }
 
-    public void gitPusher(JavaModel model) {
-        String targetUrl1 = "http://142.132.225.181:4000/pusher";
-        String requestBody1 = "{\n" +
-                "\"exerepo\":\"../home/Shared-Data/output\",\n" +
-                "\"name\":\"" + model.getName() + "\",\n" +
-                "\"filename\":\"Files.jar\"\n" +
+    public void gitPusherRequest(JavaModel model) {
+        String targetUrl2 = "http://142.132.225.181:4000/pusher";
+        String requestBody2 = "{\n" +
+                "\"gitrepo\":\"SomeRandomShit\",\n" +
+                "\"name\":\"" + model.getName() + "\",\n" 
+                 +
+                "\"filename\":\"Files.jar\"\n" + 
                 "}";
-        sendPostRequestWithJsonBody(targetUrl1, requestBody1);
+        sendPostRequestWithJsonBody(targetUrl2, requestBody2);
+    }
+
+    public void logFilePusher(JavaModel model){
+        String targetUrl3 = "http://142.132.225.181:4000/pusher";
+        String requestBody3 = "{\n" +
+                "\"gitrepo\":\"SomeRandomShit\",\n" +
+                "\"name\":\"" + model.getName() + "\",\n" 
+                 +
+                "\"filename\":\"logs.txt\"\n" + 
+                "}";
+        sendPostRequestWithJsonBody(targetUrl3, requestBody3);
     }
 
     public boolean MainCompiler(JavaModel model) throws IOException {
 
-        File directorySource = new File("../home/Shared-Data/source/" + model.getName());
-        String directoryOutput = "../home/Shared-Data/output/" + model.getName();
+        File directorySource = new File("../Shared-Data/source/" + model.getName());
+        String directoryOutput = "../Shared-Data/output/" + model.getName();
         Path directoryPath = Paths.get(directoryOutput);
         Files.createDirectories(directoryPath);
         List<File> Javafiles = new ArrayList<>();
@@ -157,15 +191,14 @@ public class AllServices implements CommandLineRunner {
 
         // Compile the files
         boolean success = compiler.getTask(null, fileManager, diagnosticListener, null, null, compilationUnits).call();
+        ComErrorStream = Stream.of(compilationErrors.toString());
         fileManager.close();
         if (!success) {
-
-            System.out.println(compilationErrors.toString());
-            ComError = Stream.of(compilationErrors.toString());
+            // TO BE FIXED: send unsuccessfull response
 
         }
         if(success){
-            ComError = Stream.of("Compilation Successfull: https://github.com/bodacious-me/"+model.getName());
+            // TO BE FIXED: send success response
         }
         return success;
     }
@@ -225,8 +258,8 @@ public class AllServices implements CommandLineRunner {
 
     public void cleaner(JavaModel model){
         System.out.println("The Cleaner Started: ");
-        String d1 = "../home/Shared-Data/source/"+model.getName();
-        String d2 = "../home/Shared-Data/output/"+model.getName();
+        String d1 = "../Shared-Data/source/"+model.getName();
+        String d2 = "../Shared-Data/output/"+model.getName();
         System.out.println(d1);
         System.out.println(d2);
         File directory1 = new File(d1);

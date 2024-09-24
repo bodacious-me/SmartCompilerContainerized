@@ -6,4 +6,5 @@ import lombok.Data;
 public class ClonerModel {
     private String gitrepo;
     private String name;
+    private String filename;
 }

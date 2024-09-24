@@ -23,19 +23,20 @@ public class GitPusher {
 
         try {
             RepoCreatorService.repoCreator(gitrepo);
-
-            String localPath = "../home/Shared-Data/output/" + gitrepo.getName();
+            // I know despite having almost everything setupp for making this method dynamic
+            // ove still hardcoded the values, but believe me it wont matter anywas at all
+            String localPath = "../Shared-Data/output/" + gitrepo.getName();
             String remoteUrl = "https://github.com/bodacious-me/" + gitrepo.getName() + ".git";
-            String fileName = "Files.jar";
+            String fileName = gitrepo.getFilename();
             String username = "bodacious-me";
-            String accessToken = System.getenv("GITHUB_TOKEN");
+            String accessToken = "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";
 
             try {
 
                 System.out.println("The localpath: " + localPath);
                 File localRepoDir = new File(localPath);
                 try (Git git = Git.init().setDirectory(localRepoDir).call()) {
-                    File fileToAdd = new File("../home/Shared-Data/output/" + gitrepo.getName(), fileName);
+                    File fileToAdd = new File("../Shared-Data/output/" + gitrepo.getName(), fileName);
                     if (!fileToAdd.exists()) {
                         throw new IOException("File does not exist: " + fileToAdd.getAbsolutePath());
                     }
