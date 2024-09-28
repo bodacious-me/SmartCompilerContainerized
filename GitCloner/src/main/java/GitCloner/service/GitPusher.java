@@ -29,7 +29,7 @@ public class GitPusher {
             String remoteUrl = "https://github.com/bodacious-me/" + gitrepo.getName() + ".git";
             String fileName = gitrepo.getFilename();
             String username = "bodacious-me";
-            String accessToken = "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";
+            String accessToken = "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";
 
             try {
 
