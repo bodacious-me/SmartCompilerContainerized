@@ -11,7 +11,7 @@ import GitCloner.model.ClonerModel;
 
 @Service
 public class GitCloner {
-       @Async("threadPoolTaskExecutor")
+      // @Async("threadPoolTaskExecutor")
         public void gitCloner(ClonerModel gitrepo) {
         try {
             String CloneDirectoryPath = "../Shared-Data/source/"+gitrepo.getName();

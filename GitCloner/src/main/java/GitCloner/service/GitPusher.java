@@ -19,7 +19,7 @@ import GitCloner.model.ClonerModel;
 public class GitPusher {
     @Autowired
     RepoCreator RepoCreatorService;
-    @Async("threadPoolTaskExecutor")
+  //  @Async("threadPoolTaskExecutor")
 
     public void gitPusher(ClonerModel gitrepo) {
 

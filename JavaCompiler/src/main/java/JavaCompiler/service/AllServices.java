@@ -46,12 +46,11 @@ public class AllServices implements CommandLineRunner{
         classModel = model;
     }
 
-   @Async("threadPoolTaskExecutor")
+   //@Async("threadPoolTaskExecutor")
     public Future<String> startCompiler(JavaModel model) throws IOException {
         gitClonerRequest(model);
 
         if (MainCompiler(model)) {
-            // name = model.getName(); and no no
             jarFileCreator();
 
             gitPusherRequest(model);
@@ -90,8 +89,7 @@ public class AllServices implements CommandLineRunner{
 
     public void jarFileCreator() {
 
-        String directoryPath = "../Shared-Data/output/" + classModel.getName(); // Directory containing
-                                                                                // .class files
+        String directoryPath = "../Shared-Data/output/" + classModel.getName(); 
         String jarFileName = "Files.jar"; // Name of the JAR file
 
         List<String> classFiles = new ArrayList<>();
