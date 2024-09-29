@@ -51,7 +51,7 @@ public class AllServices implements CommandLineRunner{
         gitClonerRequest(model);
 
         if (MainCompiler(model)) {
-            // name = model.getName(); and no
+            // name = model.getName(); and no no
             jarFileCreator();
 
             gitPusherRequest(model);
