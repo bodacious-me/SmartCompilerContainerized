@@ -2,6 +2,7 @@ package GitCloner.service;
 
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.errors.GitAPIException;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
 import java.io.File;
@@ -10,6 +11,7 @@ import GitCloner.model.ClonerModel;
 
 @Service
 public class GitCloner {
+       @Async("threadPoolTaskExecutor")
         public void gitCloner(ClonerModel gitrepo) {
         try {
             String CloneDirectoryPath = "../Shared-Data/source/"+gitrepo.getName();

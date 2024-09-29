@@ -4,11 +4,13 @@ import GitCloner.model.ClonerModel;
 import okhttp3.*;
 import java.io.IOException;
 
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
 @Service
 public class RepoCreator {
-    
+      @Async("threadPoolTaskExecutor")
+
       public void repoCreator(ClonerModel exerepo) {
         System.out.println("RepoCreator is called");
         final String token = "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";

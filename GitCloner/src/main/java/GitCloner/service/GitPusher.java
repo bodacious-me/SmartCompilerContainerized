@@ -7,6 +7,7 @@ import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.transport.URIish;
 import org.eclipse.jgit.transport.UsernamePasswordCredentialsProvider;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
 import java.io.File;
@@ -18,6 +19,7 @@ import GitCloner.model.ClonerModel;
 public class GitPusher {
     @Autowired
     RepoCreator RepoCreatorService;
+    @Async("threadPoolTaskExecutor")
 
     public void gitPusher(ClonerModel gitrepo) {
 

@@ -2,6 +2,7 @@ package JavaCompiler.service;
 
 import org.springframework.http.HttpHeaders;
 
+import java.util.concurrent.Future;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -13,6 +14,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import java.io.InputStreamReader;
+import java.util.concurrent.CompletableFuture;
 import org.springframework.util.FileSystemUtils;
 
 import javax.tools.Diagnostic;
@@ -23,11 +25,11 @@ import javax.tools.StandardJavaFileManager;
 import javax.tools.ToolProvider;
 import java.io.BufferedReader;
 
-
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 import java.nio.file.Paths;
@@ -35,30 +37,38 @@ import java.nio.file.Paths;
 import JavaCompiler.model.JavaModel;
 
 @Service
-public class AllServices implements CommandLineRunner {
+public class AllServices implements CommandLineRunner{
 
-    public static String name;
-    public static Stream<String> ComErrorStream;
-    public String run(JavaModel model) throws IOException {
+
+    JavaModel classModel = new JavaModel();
+    public Stream<String> ComErrorStream;
+    public void setModels(JavaModel model) {
+        classModel = model;
+    }
+
+   @Async("threadPoolTaskExecutor")
+    public Future<String> startCompiler(JavaModel model) throws IOException {
         gitClonerRequest(model);
+
         if (MainCompiler(model)) {
-            name = model.getName();
+            // name = model.getName(); and no
             jarFileCreator();
 
             gitPusherRequest(model);
-            return "Compilation Successfull The Jar File Is Here: https://github.com/bodacious-me/"+model.getName();
-        }
-        else{
+            cleaner(model);
+            return CompletableFuture.completedFuture("Compilation Successful. The Jar File Is Here: https://github.com/bodacious-me/" + model.getName());
+        } else {
             logFileGenerator(model);
             logFilePusher(model);
-            return "Logs For Your Stupid Code is Here HAHAHA: https://github.com/bodacious-me/"+model.getName();
+            return CompletableFuture.completedFuture("Compilation Successful. The Jar File Is Here: https://github.com/bodacious-me/" + model.getName());
         }
 
     }
-    public void logFileGenerator(JavaModel model){
+
+    public void logFileGenerator(JavaModel model) {
         System.out.println("Log creator method called");
-         String result = ComErrorStream.collect(Collectors.joining(" "));
-        String logFileDirectory = "../Shared-Data/output/"+model.getName();
+        String result = ComErrorStream.collect(Collectors.joining(" "));
+        String logFileDirectory = "../Shared-Data/output/" + model.getName();
         String logFileName = "logs.txt";
 
         Path path = Paths.get(logFileDirectory, logFileName);
@@ -67,9 +77,10 @@ public class AllServices implements CommandLineRunner {
             Files.createDirectories(path.getParent());
             Files.writeString(path, result);
         } catch (IOException e) {
-            System.out.println("Error Dummie: "+ e);
+            System.out.println("Error Dummie: " + e);
         }
     }
+
     // Command Runner
 
     @Override
@@ -79,13 +90,13 @@ public class AllServices implements CommandLineRunner {
 
     public void jarFileCreator() {
 
-        String directoryPath = "../Shared-Data/output/" + name; // Directory containing
-                                                                                                 // .class files
+        String directoryPath = "../Shared-Data/output/" + classModel.getName(); // Directory containing
+                                                                                // .class files
         String jarFileName = "Files.jar"; // Name of the JAR file
 
         List<String> classFiles = new ArrayList<>();
         try {
-            Files.list(Paths.get("../Shared-Data/output/" + name))
+            Files.list(Paths.get("../Shared-Data/output/" + classModel.getName()))
                     .filter(path -> path.toString().endsWith(".class"))
                     .forEach(path -> classFiles.add(path.getFileName().toString()));
         } catch (IOException e) {
@@ -129,20 +140,20 @@ public class AllServices implements CommandLineRunner {
         String targetUrl2 = "http://142.132.225.181:4000/pusher";
         String requestBody2 = "{\n" +
                 "\"gitrepo\":\"SomeRandomShit\",\n" +
-                "\"name\":\"" + model.getName() + "\",\n" 
-                 +
-                "\"filename\":\"Files.jar\"\n" + 
+                "\"name\":\"" + model.getName() + "\",\n"
+                +
+                "\"filename\":\"Files.jar\"\n" +
                 "}";
         sendPostRequestWithJsonBody(targetUrl2, requestBody2);
     }
 
-    public void logFilePusher(JavaModel model){
+    public void logFilePusher(JavaModel model) {
         String targetUrl3 = "http://142.132.225.181:4000/pusher";
         String requestBody3 = "{\n" +
                 "\"gitrepo\":\"SomeRandomShit\",\n" +
-                "\"name\":\"" + model.getName() + "\",\n" 
-                 +
-                "\"filename\":\"logs.txt\"\n" + 
+                "\"name\":\"" + model.getName() + "\",\n"
+                +
+                "\"filename\":\"logs.txt\"\n" +
                 "}";
         sendPostRequestWithJsonBody(targetUrl3, requestBody3);
     }
@@ -166,13 +177,13 @@ public class AllServices implements CommandLineRunner {
 
         // Convert the list to an array
         File[] filesArray = javaFiles.toArray(new File[0]);
-        //stringbuilder
+        // stringbuilder
         StringBuilder compilationErrors = new StringBuilder();
         // Set up the Java compiler
         JavaCompiler compiler = ToolProvider.getSystemJavaCompiler();
         StandardJavaFileManager fileManager = compiler.getStandardFileManager(null, null, null);
         // create DiagnosticListner
-                DiagnosticListener<JavaFileObject> diagnosticListener = diagnostic -> {
+        DiagnosticListener<JavaFileObject> diagnosticListener = diagnostic -> {
             if (diagnostic.getKind() == Diagnostic.Kind.ERROR) {
                 compilationErrors.append(diagnostic.getMessage(null)).append("\n");
             }
@@ -190,7 +201,7 @@ public class AllServices implements CommandLineRunner {
             // TO BE FIXED: send unsuccessfull response
 
         }
-        if(success){
+        if (success) {
             // TO BE FIXED: send success response
         }
         return success;
@@ -230,7 +241,6 @@ public class AllServices implements CommandLineRunner {
 
     }
 
-
     public void sendPostRequestWithJsonBody(String targetUrl, String requestBody) {
         RestTemplate restTemplate = new RestTemplate();
 
@@ -249,21 +259,19 @@ public class AllServices implements CommandLineRunner {
         }
     }
 
-    public void cleaner(JavaModel model){
+    public void cleaner(JavaModel model) {
         System.out.println("The Cleaner Started: ");
-        String d1 = "../Shared-Data/source/"+model.getName();
-        String d2 = "../Shared-Data/output/"+model.getName();
+        String d1 = "../Shared-Data/source/" + model.getName();
+        String d2 = "../Shared-Data/output/" + model.getName();
         System.out.println(d1);
         System.out.println(d2);
         File directory1 = new File(d1);
         File directory2 = new File(d2);
         boolean delete1 = FileSystemUtils.deleteRecursively(directory1);
         boolean delete2 = FileSystemUtils.deleteRecursively(directory2);
-        if(delete1 && delete2){
+        if (delete1 && delete2) {
             System.out.println("Cleaned up the mess Successfully");
         }
-
-
 
     }
 }
